@@ -1,0 +1,163 @@
+/*****************************************************************************
+
+		Copyright (c) My Company
+
+ Project:  LABERINTO
+ FileName: LABERINTO.PRO
+ Purpose: Prolog program that solves a 7x8 Maze, using the backtracking resolution 
+ Written by: Juan Jose Lopez Gomez && Roberto Merchan Gonzalez
+ Comments:
+******************************************************************************/
+
+include "laberinto.inc"
+
+domains
+	/* Dominio del problema */
+	coor = integer
+	
+	/* Definiciï¿½n de las casillas*/
+	pos = casilla(coor,coor,coor) 
+	paredes = pos*.
+	lpos = pos*.
+	
+	/* Definiciï¿½n del lï¿½mite de profundidad */
+	limite = integer
+		
+predicates
+
+	/*Comprobar la posiciï¿½n */
+  	es_pared(pos, paredes).
+  	miembro(pos,lpos).
+  	inseguro(pos).
+  	
+  	/* Predicados para avanzar la posiciï¿½n*/
+ 	avanzar(pos, pos, paredes).
+ 	
+ 	/* Predicado para la resoluciï¿½n */
+ 	solucionar(lpos, pos, paredes).
+ 	
+ 	solucionar_anchura(lpos,pos,paredes,limite,limite).
+ 	
+ 	/* Impresión por pantalla */
+ 	escribe(lpos).
+ 	
+ 	/* Mejor solución */
+ 	mejorsol(integer)
+clauses
+
+	/* Avanzar derecha */
+  	avanzar(casilla(X,YI,GI), casilla(X,YF,GF), ListaPared):-
+  		YF = YI + 1,
+  		GF = 0,
+  		inseguro(casilla(X,YF,GF)),
+  		not(es_pared(casilla(X,YI,GF), ListaPared)).
+ 	
+  	/* Avanzar arriba */
+  	avanzar(casilla(XI,Y,GI), casilla(XF,Y,GF), ListaPared):-
+  		XF = XI - 1,
+  		GF = 1,
+  		inseguro(casilla(XF,Y,GF)),
+  		not(es_pared(casilla(XI,Y,GF), ListaPared)).
+  		
+  	/* Avanzar abajo */	
+  	avanzar(casilla(XI,Y,GI), casilla(XF,Y,GF), ListaPared):-
+  		XF = XI + 1,
+  		GF = 2,
+  		inseguro(casilla(XF,Y,GF)),
+  		not(es_pared(casilla(XI,Y,GF), ListaPared)).
+  		
+  	/* Avanzar izquierda */
+  	avanzar(casilla(X,YI,GI), casilla(X,YF,GF), ListaPared):-
+  		YF = YI - 1,
+  		GF = 3,
+  		inseguro(casilla(X,YF,GF)),
+  		not(es_pared(casilla(X,YI,GF), ListaPared)).
+  		
+  	/* Comprobar si la posiciï¿½n a la que ir es posible*/
+  	es_pared(E,[E|_]).
+  	es_pared(E,[_|T]):-
+  		es_pared(E,T).
+  		
+  	/*Estados repetidos */
+        miembro(casilla(X,Y,_),[casilla(X,Y,_)|_]).
+        miembro(E,[_|T]):-
+        	miembro(E,T).
+        	
+        /* Dentro de los limites */
+        inseguro(casilla(X,Y,G)):-
+        	X <= 6,
+        	X >= 1,
+        	Y <= 7,
+        	Y >= 1.
+
+  		
+  	/* Resolucion del ejercicio en profundidad */
+  	solucionar(PosLista,PosFinal,_):-
+  		PosLista = [H|T],
+  		PosFinal = H,
+  		escribe(PosLista).
+  		
+  	solucionar(PosLista, PosFinal, Paredes):- 
+  		PosLista = [H|T],
+  		not(miembro(H,T)),
+  		avanzar(H,Npos, Paredes),
+  		NPosLista = [NPos|PosLista],
+  		solucionar(NPosLista,PosFinal,Paredes).
+  		
+  	/* Resolución del ejercicio en anchura */
+  	solucionar_anchura(PosLista,PosFinal,_,_,_):-
+  		PosLista = [H|T],
+  		PosFinal = H,
+  		escribe(PosLista).
+  	
+  	solucionar_anchura(PosLista, PosFinal, Paredes, Lim_ant, Limite):-
+  		PosLista = [H|T],
+  		not(miembro(H,T)),
+  		avanzar(H,Npos, Paredes),
+  		NPosLista = [NPos|PosLista],
+  		Nue_Lim=Lim_ant+1,
+        	Nue_Lim<=Limite,
+  		solucionar_anchura(NPosLista,PosFinal,Paredes, Nue_Lim, Limite).
+  		
+  	/* Mejor solución */
+  	mejorsol(Lim_ini):-
+        	solucionar_anchura([casilla(4,1,0)], casilla(4,7,_), 
+        		[
+  				casilla(1,1,3),casilla(1,1,1),casilla(1,2,1),casilla(1,3,1),casilla(1,4,1),casilla(1,4,0),casilla(1,5,1),casilla(1,5,3),casilla(1,6,1),casilla(1,7,1),casilla(1,7,0),
+  				casilla(2,1,3),casilla(2,1,0),casilla(2,2,2),casilla(2,2,3),casilla(2,3,0),casilla(2,3,2),casilla(2,4,0),casilla(2,4,3),casilla(2,5,3),casilla(2,5,0),casilla(2,6,3),casilla(2,6,0),casilla(2,7,3),casilla(2,7,0),
+  				casilla(3,1,3),casilla(3,1,2),casilla(3,2,0),casilla(3,2,1),casilla(3,3,1),casilla(3,3,3),casilla(3,4,0),casilla(3,4,2),casilla(3,5,0),casilla(3,5,2),casilla(3,5,3),casilla(3,6,0),casilla(3,6,3),casilla(3,7,0),casilla(3,7,3),
+  				casilla(4,1,1),casilla(4,1,3),casilla(4,2,0),casilla(4,2,2),casilla(4,3,0),casilla(4,3,4),casilla(4,4,3),casilla(4,4,1),casilla(4,4,2),casilla(4,5,1),casilla(4,5,2),casilla(4,6,0),casilla(4,7,3),
+  				casilla(5,1,0),casilla(5,1,3),casilla(5,2,1),casilla(5,2,3),casilla(5,4,1),casilla(5,5,1),casilla(5,6,0),casilla(5,7,0),casilla(5,7,3),
+  				casilla(6,1,2),casilla(6,1,3),casilla(6,2,2),casilla(6,3,2),casilla(6,4,2),casilla(6,5,2),casilla(6,6,2),casilla(6,7,2),casilla(6,7,0)
+  			], 1, Lim_ini),
+  		write("Rules used: ", Lim_ini, '\n','\n').
+        	
+        mejorsol(Lim_ini):-
+        	Nue_lim=Lim_ini+1,
+        	mejorsol(Nue_lim).
+  		
+  	
+        	
+        /* Impresión por pantalla */
+        escribe([]).
+        
+  	escribe([H|T]):-
+        	escribe(T),
+        	write(H,'\n').
+  		
+goal
+	write("Finding the best solution --> Width resolution",'\n'),
+	mejorsol(1),
+	write("Finding one posible solution --> Depth resolution",'\n'),
+  	solucionar([casilla(4,1,0)], casilla(4,7,_), 
+  		[
+  			casilla(1,1,3),casilla(1,1,1),casilla(1,2,1),casilla(1,3,1),casilla(1,4,1),casilla(1,4,0),casilla(1,5,1),casilla(1,5,3),casilla(1,6,1),casilla(1,7,1),casilla(1,7,0),
+  			casilla(2,1,3),casilla(2,1,0),casilla(2,2,2),casilla(2,2,3),casilla(2,3,0),casilla(2,3,2),casilla(2,4,0),casilla(2,4,3),casilla(2,5,3),casilla(2,5,0),casilla(2,6,3),casilla(2,6,0),casilla(2,7,3),casilla(2,7,0),
+  			casilla(3,1,3),casilla(3,1,2),casilla(3,2,0),casilla(3,2,1),casilla(3,3,1),casilla(3,3,3),casilla(3,4,0),casilla(3,4,2),casilla(3,5,0),casilla(3,5,2),casilla(3,5,3),casilla(3,6,0),casilla(3,6,3),casilla(3,7,0),casilla(3,7,3),
+  			casilla(4,1,1),casilla(4,1,3),casilla(4,2,0),casilla(4,2,2),casilla(4,3,0),casilla(4,3,4),casilla(4,4,3),casilla(4,4,1),casilla(4,4,2),casilla(4,5,1),casilla(4,5,2),casilla(4,6,0),casilla(4,7,3),
+  			casilla(5,1,0),casilla(5,1,3),casilla(5,2,1),casilla(5,2,3),casilla(5,4,1),casilla(5,5,1),casilla(5,6,0),casilla(5,7,0),casilla(5,7,3),
+  			casilla(6,1,2),casilla(6,1,3),casilla(6,2,2),casilla(6,3,2),casilla(6,4,2),casilla(6,5,2),casilla(6,6,2),casilla(6,7,2),casilla(6,7,0)
+  		]
+  	).
+  	
+  		
